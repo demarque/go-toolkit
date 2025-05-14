@@ -1018,15 +1018,14 @@ func (m *PubMetadataAdapter) Presentation() manifest.Presentation {
 		flowProp := m.FirstValue(VocabularyRendition + "flow")
 		spreadProp := m.FirstValue(VocabularyRendition + "spread")
 		orientationProp := m.FirstValue(VocabularyRendition + "orientation")
-		var layoutProp string
-		if m.epubVersion < 3.0 {
+		layoutProp := m.FirstValue(VocabularyRendition + "layout")
+
+		if layoutProp == "" {
 			if do, ok := m.displayOptions["fixed-layout"]; ok && do == "true" {
 				layoutProp = "pre-paginated"
 			} else {
 				layoutProp = "reflowable"
 			}
-		} else {
-			layoutProp = m.FirstValue(VocabularyRendition + "layout")
 		}
 
 		overflow := manifest.OverflowAuto
