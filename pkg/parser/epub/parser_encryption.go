@@ -9,14 +9,14 @@ import (
 	"github.com/readium/xmlquery"
 )
 
-func ParseEncryption(document *xmlquery.Node) (ret map[url.URL]manifest.Encryption) {
+func ParseEncryption(document *xmlquery.Node) (ret map[string]manifest.Encryption) {
 	for _, node := range document.SelectElements("//" + NSSelect(NamespaceENC, "EncryptedData")) {
 		u, e := parseEncryptedData(node)
 		if e != nil {
 			if ret == nil {
-				ret = make(map[url.URL]manifest.Encryption)
+				ret = make(map[string]manifest.Encryption)
 			}
-			ret[u] = *e
+			ret[u.String()] = *e
 		}
 	}
 	return

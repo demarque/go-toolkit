@@ -10,7 +10,6 @@ import (
 	"github.com/readium/go-toolkit/pkg/manifest"
 	"github.com/readium/go-toolkit/pkg/mediatype"
 	"github.com/readium/go-toolkit/pkg/pub"
-	"github.com/readium/go-toolkit/pkg/util/url"
 )
 
 type Parser struct {
@@ -79,7 +78,7 @@ func (p Parser) Parse(ctx context.Context, asset asset.PublicationAsset, f fetch
 	return pub.NewBuilder(manifest, ffetcher, builder), nil
 }
 
-func parseEncryptionData(ctx context.Context, f fetcher.Fetcher) (ret map[url.URL]manifest.Encryption) {
+func parseEncryptionData(ctx context.Context, f fetcher.Fetcher) (ret map[string]manifest.Encryption) {
 	n, err := fetcher.ReadResourceAsXML(ctx, f.Get(ctx, manifest.Link{Href: manifest.MustNewHREFFromString("META-INF/encryption.xml", false)}), map[string]string{
 		NamespaceENC:  "enc",
 		NamespaceSIG:  "ds",

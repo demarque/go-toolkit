@@ -23,7 +23,7 @@ func loadEncryption(ctx context.Context, name string) (map[string]manifest.Encry
 	enc := ParseEncryption(n)
 	ret := make(map[string]manifest.Encryption)
 	for k, v := range enc {
-		ret[k.String()] = v
+		ret[k] = v
 	}
 
 	return ret, nil
