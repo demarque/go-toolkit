@@ -8,6 +8,7 @@ import (
 	"io"
 	"io/fs"
 	"math"
+	"net/url"
 	"path"
 	"sync"
 
@@ -304,14 +305,18 @@ func (a *gozipArchive) Entry(p string) (Entry, error) {
 		return aentry.(Entry), nil
 	}
 
+	dpath, err := url.PathUnescape(cpath)
+	if err != nil {
+		dpath = cpath
+	}
 	for _, f := range a.zip.File {
 		fp := path.Clean(f.Name)
-		if fp == cpath {
+		if fp == cpath || fp == dpath {
 			aentry := gozipArchiveEntry{
 				file:          f,
 				minimizeReads: a.minimizeReads,
 			}
-			a.cachedEntries.Store(fp, aentry) // Put entry in cache
+			a.cachedEntries.Store(cpath, aentry) // Put entry in cache
 			return aentry, nil
 		}
 	}
