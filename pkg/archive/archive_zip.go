@@ -10,6 +10,8 @@ import (
 	"math"
 	"net/url"
 	"path"
+	"slices"
+	"strings"
 	"sync"
 
 	"github.com/pkg/errors"
@@ -305,13 +307,10 @@ func (a *gozipArchive) Entry(p string) (Entry, error) {
 		return aentry.(Entry), nil
 	}
 
-	dpath, err := url.PathUnescape(cpath)
-	if err != nil {
-		dpath = cpath
-	}
+	paths := pathVariants(cpath)
 	for _, f := range a.zip.File {
 		fp := path.Clean(f.Name)
-		if fp == cpath || fp == dpath {
+		if slices.Contains(paths, fp) {
 			aentry := gozipArchiveEntry{
 				file:          f,
 				minimizeReads: a.minimizeReads,
@@ -321,6 +320,27 @@ func (a *gozipArchive) Entry(p string) (Entry, error) {
 		}
 	}
 	return nil, fs.ErrNotExist
+}
+
+func pathVariants(p string) []string {
+	variants := make([]string, 0, 3)
+	variants = append(variants, p)
+
+	uPath, err := url.PathUnescape(p)
+	if err == nil && uPath != p {
+		variants = append(variants, uPath)
+	}
+
+	fragments := strings.Split(p, "/")
+	for i, fragment := range fragments {
+		fragments[i] = url.PathEscape(fragment)
+	}
+	ePath := strings.Join(fragments, "/")
+	if ePath != p {
+		variants = append(variants, ePath)
+	}
+
+	return variants
 }
 
 func NewGoZIPArchive(zip *zip.Reader, closer func() error, minimizeReads bool) Archive {
