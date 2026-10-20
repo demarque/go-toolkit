@@ -291,3 +291,23 @@ func TestLinkFirstIndexLinkWithHrefInList(t *testing.T) {
 		}.IndexOfFirstWithHref(url.MustURLFromString("href2")),
 	)
 }
+
+func TestLinkListMediaTypeHelpersWithNilMediaType(t *testing.T) {
+	mp3 := mediatype.MP3
+	jpeg := mediatype.JPEG
+	untyped := Link{Href: MustNewHREFFromString("file.bin", false)}
+	audio := Link{Href: MustNewHREFFromString("file.mp3", false), MediaType: &mp3}
+	image := Link{Href: MustNewHREFFromString("file.jpg", false), MediaType: &jpeg}
+
+	assert.NotPanics(t, func() {
+		assert.False(t, LinkList{audio, untyped}.AllAreAudio())
+		assert.False(t, LinkList{image, untyped}.AllAreBitmap())
+		assert.False(t, LinkList{image, untyped}.AllAreVisual())
+		assert.False(t, LinkList{untyped}.AllAreVideo())
+		assert.False(t, LinkList{untyped}.AllAreHTML())
+		assert.False(t, LinkList{untyped}.AllMatchMediaType(&mediatype.MP3))
+		assert.Equal(t, LinkList{audio}, LinkList{untyped, audio}.FilterByMediaType(&mediatype.MP3))
+		assert.Equal(t, &audio, LinkList{untyped, audio}.FirstWithMediaType(&mediatype.MP3))
+		assert.Nil(t, LinkList{untyped}.FirstWithMediaType(&mediatype.MP3))
+	})
+}

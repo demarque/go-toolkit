@@ -430,3 +430,34 @@ func newEPUBPresentation(layout manifest.EPUBLayout) *manifest.Presentation {
 	pres.Layout = &layout
 	return pres
 }
+
+// A link whose media type could not be parsed (e.g. an OPF item without a
+// `media-type` attribute) has a nil MediaType. Inference must skip it rather
+// than panic.
+func TestInferIgnoresLinksWithoutMediaType(t *testing.T) {
+	untyped := manifest.Link{Href: manifest.MustNewHREFFromString("file.bin", false)}
+
+	for _, layout := range []manifest.EPUBLayout{manifest.EPUBLayoutFixed, manifest.EPUBLayoutReflowable} {
+		m := manifest.Manifest{
+			Metadata: manifest.Metadata{
+				ConformsTo:   manifest.Profiles{manifest.ProfileEPUB},
+				Presentation: newEPUBPresentation(layout),
+			},
+			ReadingOrder: []manifest.Link{newLink(mediatype.HTML, "html")},
+			Resources:    []manifest.Link{untyped, newLink(mediatype.SMIL, "smil")},
+		}
+
+		var res *manifest.A11y
+		var err error
+		assert.NotPanics(t, func() {
+			res, err = inferA11yMetadataInPublicationManifest(context.TODO(), pub.New(m, nil, nil), nil)
+		}, "layout %s", layout)
+		assert.NoError(t, err)
+		if assert.NotNil(t, res, "layout %s", layout) {
+			assert.Contains(t, res.Features, manifest.A11yFeatureSynchronizedAudioText)
+			if layout == manifest.EPUBLayoutReflowable {
+				assert.Contains(t, res.AccessModes, manifest.A11yAccessModeTextual)
+			}
+		}
+	}
+}
