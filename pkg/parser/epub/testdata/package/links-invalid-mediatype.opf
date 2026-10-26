@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<package xmlns="http://www.idpf.org/2007/opf" version="3.0" unique-identifier="pub-id">
+  <metadata xmlns:dc="http://purl.org/dc/elements/1.1/">
+    <dc:identifier id="pub-id">urn:uuid:links-invalid-mediatype</dc:identifier>
+    <dc:title>Links with invalid media types</dc:title>
+  </metadata>
+  <manifest>
+    <!-- Invalid media type (two slashes), seen in real EPUBs: resolved from the extension -->
+    <item id="font-ttf" href="fonts/body.ttf" media-type="application/x-font/otf"/>
+    <item id="font-otf" href="fonts/heading.otf" media-type="application/x-font/otf"/>
+    <!-- Invalid media type and no extension to fall back on: opaque binary -->
+    <item id="unknown" href="misc/unknown" media-type="garbage"/>
+    <!-- Missing media type: resolved from the extension -->
+    <item id="nomediatype" href="nomediatype.txt"/>
+    <!-- Missing media type and unknown extension: opaque binary -->
+    <item id="nomediatype-unknown" href="misc/data.xyz"/>
+    <!-- Valid media type is kept as declared, not canonicalized -->
+    <item id="chapter01" href="chapter01.xhtml" media-type="application/xhtml+xml"/>
+  </manifest>
+  <spine>
+    <itemref idref="chapter01"/>
+  </spine>
+</package>

@@ -170,7 +170,8 @@ func TestPackageDocLinkResources(t *testing.T) {
 			MediaType: &mediatype.GIF,
 		},
 		{
-			Href: manifest.MustNewHREFFromString("OEBPS/nomediatype.txt", false),
+			Href:      manifest.MustNewHREFFromString("OEBPS/nomediatype.txt", false),
+			MediaType: &mediatype.Text,
 		},
 	}, p.Resources)
 }
@@ -187,4 +188,43 @@ func TestPackageDocLinkFallbacksCircularDependencies(t *testing.T) {
 	_, err := loadPackageDoc(t.Context(), "fallbacks-termination")
 	assert.NoError(t, err)
 	// t.Logf("%+v\n", p)
+}
+
+func TestPackageDocLinkInvalidMediaTypeNeverNil(t *testing.T) {
+	p, err := loadPackageDoc(t.Context(), "links-invalid-mediatype")
+	assert.NoError(t, err)
+
+	assert.Equal(t, manifest.LinkList{
+		{
+			Href:      manifest.MustNewHREFFromString("OEBPS/fonts/body.ttf", false),
+			MediaType: &mediatype.TTF,
+		},
+		{
+			Href:      manifest.MustNewHREFFromString("OEBPS/fonts/heading.otf", false),
+			MediaType: &mediatype.OTF,
+		},
+		{
+			Href:      manifest.MustNewHREFFromString("OEBPS/misc/unknown", false),
+			MediaType: &mediatype.Binary,
+		},
+		{
+			Href:      manifest.MustNewHREFFromString("OEBPS/nomediatype.txt", false),
+			MediaType: &mediatype.Text,
+		},
+		{
+			Href:      manifest.MustNewHREFFromString("OEBPS/misc/data.xyz", false),
+			MediaType: &mediatype.Binary,
+		},
+	}, p.Resources)
+
+	assert.Equal(t, manifest.LinkList{
+		{
+			Href:      manifest.MustNewHREFFromString("OEBPS/chapter01.xhtml", false),
+			MediaType: &mediatype.XHTML,
+		},
+	}, p.ReadingOrder)
+
+	for _, link := range append(p.Resources, p.ReadingOrder...) {
+		assert.NotNil(t, link.MediaType, "link %s has a nil media type", link.Href.String())
+	}
 }

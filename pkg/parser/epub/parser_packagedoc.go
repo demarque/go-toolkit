@@ -104,7 +104,7 @@ func ParseItem(element *xmlquery.Node, filePath url.URL, prefixMap map[string]st
 		ID:           element.SelectAttr("id"),
 		fallback:     element.SelectAttr("fallback"),
 		mediaOverlay: element.SelectAttr("media-overlay"),
-		MediaType:    mediatype.MaybeNewOfString(element.SelectAttr("media-type")),
+		MediaType:    parseItemMediaType(element.SelectAttr("media-type"), u),
 	}
 	pp := parseProperties(element.SelectAttr("properties"))
 	if len(pp) > 0 {
@@ -184,4 +184,23 @@ func ParseItemRef(element *xmlquery.Node, prefixMap map[string]string) *ItemRef 
 		linear:     element.SelectAttr("linear") != "no",
 		properties: properties,
 	}
+}
+
+// Resolves the media type of a manifest item.
+//
+// The media-type attribute is required by the EPUB specification, but it is
+// frequently missing or invalid in EPUBs found in the wild (e.g.
+// "application/x-font/otf"). A manifest item must never end up without a
+// media type, otherwise every consumer of the resulting [manifest.Link] has to
+// guard against a nil [mediatype.MediaType]. When the declared value cannot be
+// parsed, the type is sniffed from the declared value and the file extension,
+// and as a last resort the item is treated as an opaque binary resource.
+func parseItemMediaType(rawMediaType string, href url.URL) *mediatype.MediaType {
+	if mt := mediatype.MaybeNewOfString(rawMediaType); mt != nil {
+		return mt
+	}
+	if mt := mediatype.OfStringAndExtension(rawMediaType, href.Extension()); mt != nil {
+		return mt
+	}
+	return &mediatype.Binary
 }
